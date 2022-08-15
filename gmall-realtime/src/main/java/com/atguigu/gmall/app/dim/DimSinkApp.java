@@ -3,6 +3,7 @@ package com.atguigu.gmall.app.dim;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
+import com.atguigu.gmall.app.func.MyBroadcastFunction;
 import com.atguigu.gmall.bean.TableProcess;
 import com.atguigu.gmall.util.KafkaUtil;
 import com.ververica.cdc.connectors.mysql.source.MySqlSource;
@@ -13,7 +14,6 @@ import org.apache.flink.api.common.state.MapStateDescriptor;
 import org.apache.flink.streaming.api.datastream.*;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.ProcessFunction;
-import org.apache.flink.streaming.api.functions.co.BroadcastProcessFunction;
 import org.apache.flink.util.Collector;
 import org.apache.flink.util.OutputTag;
 
@@ -44,7 +44,7 @@ public class DimSinkApp {
         String groupID = "dim_sink_app";
         DataStreamSource<String> topicDbStream = env.addSource(KafkaUtil.getKafkaConsumer(topicName, groupID));
 
-        topicDbStream.print("topic_db>>>>>>>>");
+//        topicDbStream.print("topic_db>>>>>>>>");
 
         // TODO 4 转换格式和清洗过滤脏数据
         //不是json的数据；
@@ -111,24 +111,17 @@ public class DimSinkApp {
         // TODO 6 将配置流转换为广播流和主流进行连接
         // K String(表名)  判断当前表是否为维度表
         // V (后面的数据)   能够完成在phoenix中创建表格的工作
-        BroadcastStream<String> broadcastStream = tableConfigStream.broadcast(new MapStateDescriptor<String, TableProcess>("table_process",String.class,TableProcess.class));
+        MapStateDescriptor<String, TableProcess> mapStateDescriptor = new MapStateDescriptor<>("table_process", String.class, TableProcess.class);
+        BroadcastStream<String> broadcastStream = tableConfigStream.broadcast(mapStateDescriptor);
 
 
         BroadcastConnectedStream<JSONObject, String> connectedStream = jsonObjStream.connect(broadcastStream);
 
         // TODO 7 处理连接流 根据配置流的信息  过滤出主流的维度表内容
-        connectedStream.process(new BroadcastProcessFunction<JSONObject, String, JSONObject>() {
-            @Override
-            public void processElement(JSONObject value, ReadOnlyContext ctx, Collector<JSONObject> out) throws Exception {
+        SingleOutputStreamOperator<JSONObject> filterTableStream = connectedStream.process(new MyBroadcastFunction(mapStateDescriptor));
 
-            }
+        filterTableStream.print("filterTable>>>>>>>>");
 
-            @Override
-            public void processBroadcastElement(String value, Context ctx, Collector<JSONObject> out) throws Exception {
-
-            }
-        });
-                
         // TODO 8 将数据写入到phoenix中
 
 

@@ -1,5 +1,6 @@
 package com.atguigu.gmall.bean;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 /**
