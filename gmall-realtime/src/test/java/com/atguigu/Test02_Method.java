@@ -1,5 +1,6 @@
 package com.atguigu;
 
+import com.atguigu.gmall.util.DateFormatUtil;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashSet;
@@ -16,5 +17,10 @@ public class Test02_Method {
         strings.add("hello2");
         String s = StringUtils.join(strings,",");
         System.out.println(s);
+
+        long l = 1645427097000L + 1000L * 60 * 60 * 24;
+        System.out.println(l);
+
+        System.out.println(DateFormatUtil.toDate(1645513497000L));
     }
 }
