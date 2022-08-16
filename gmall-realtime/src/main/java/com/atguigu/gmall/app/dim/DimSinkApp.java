@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
 import com.atguigu.gmall.app.func.MyBroadcastFunction;
+import com.atguigu.gmall.app.func.MyPhoenixSink;
 import com.atguigu.gmall.bean.TableProcess;
 import com.atguigu.gmall.util.KafkaUtil;
 import com.ververica.cdc.connectors.mysql.source.MySqlSource;
@@ -120,10 +121,10 @@ public class DimSinkApp {
         // TODO 7 处理连接流 根据配置流的信息  过滤出主流的维度表内容
         SingleOutputStreamOperator<JSONObject> filterTableStream = connectedStream.process(new MyBroadcastFunction(mapStateDescriptor));
 
-        filterTableStream.print("filterTable>>>>>>>>");
+//        filterTableStream.print("filterTable>>>>>>>>");
 
         // TODO 8 将数据写入到phoenix中
-
+        filterTableStream.addSink(new MyPhoenixSink());
 
         // TODO 9 执行任务
         env.execute(groupID);
