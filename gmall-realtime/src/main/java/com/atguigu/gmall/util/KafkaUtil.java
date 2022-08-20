@@ -60,4 +60,26 @@ public class KafkaUtil {
         return new FlinkKafkaProducer<String>(topicName,new SimpleStringSchema(),properties);
     }
 
+
+    public static String getKafkaDDL(String topicName, String groupID) {
+        return "WITH (\n" +
+                "  'connector' = 'kafka',\n" +
+                "  'topic' = '"  + topicName + "',\n" +
+                "  'properties.bootstrap.servers' = '" + BOOTSTRAP_SERVERS + "',\n" +
+                "  'properties.group.id' = '" + groupID + "',\n" +
+                "  'scan.startup.mode' = 'group-offsets',\n" +
+                "  'format' = 'json'\n" +
+                ")";
+    }
+
+    public static String getKafkaSinkDDL(String topicName){
+        return "WITH (\n" +
+                "  'connector' = 'kafka',\n" +
+                "  'topic' = '"  + topicName + "',\n" +
+                "  'properties.bootstrap.servers' = '" + BOOTSTRAP_SERVERS + "',\n" +
+//                "  'key.format' = 'json' , \n" +
+                "  'value.format' = 'json'  \n" +
+                ")";
+    }
+
 }

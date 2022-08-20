@@ -43,6 +43,8 @@ public class Test06_KafkaDDL {
                 "  'format' = 'json'\n" +
                 ")");
 
+
+
         tableEnv.sqlQuery("select * from topic_db").execute().print();
 
     }
