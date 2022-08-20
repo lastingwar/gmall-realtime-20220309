@@ -17,7 +17,7 @@ import java.util.Properties;
  * @create 2022-08-13 15:31
  */
 public class KafkaUtil {
-    private   static String BOOTSTRAP_SERVERS = "hadoop102:9092,hadoop103:9092,hadoop104:9092";
+    public static String BOOTSTRAP_SERVERS = "hadoop102:9092,hadoop103:9092,hadoop104:9092";
 
     public static FlinkKafkaConsumer<String> getKafkaConsumer(String topicName,String groupID){
 
