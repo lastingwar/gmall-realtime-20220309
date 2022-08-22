@@ -44,7 +44,6 @@ public class Test06_KafkaDDL {
                 ")");
 
 
-
         tableEnv.sqlQuery("select * from topic_db").execute().print();
 
     }

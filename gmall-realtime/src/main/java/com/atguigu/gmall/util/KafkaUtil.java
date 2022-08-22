@@ -82,4 +82,16 @@ public class KafkaUtil {
                 ")";
     }
 
+    public static String getUpsertKafkaSinkDDL(String topicName){
+        return "WITH (\n" +
+                "  'connector' = 'upsert-kafka',\n" +
+                "  'topic' = '"  + topicName + "',\n" +
+                "  'properties.bootstrap.servers' = '" + BOOTSTRAP_SERVERS + "',\n" +
+                "  'key.format' = 'json' , \n" +
+                "  'value.format' = 'json'  \n" +
+                ")";
+    }
+
+
+
 }
