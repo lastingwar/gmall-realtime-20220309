@@ -13,7 +13,7 @@ import java.time.Duration;
  * @create 2022-08-22 10:22
  */
 public class DwdTradeOrderPreProcess {
-    public static void main(String[] args) {
+    public static void main(String[] args)  {
         // TODO 1 环境准备
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(1);
@@ -76,6 +76,9 @@ public class DwdTradeOrderPreProcess {
                 "  `data`['user_id'] user_id,\n" +
                 "  `data`['operate_time'] operate_time,\n" +
                 "  `data`['province_id'] province_id,\n" +
+                "   `type`,\n" +
+                "   `old`,\n" +
+                "  `data`['province_id'] province_id,\n" +
                 "  `ts`,\n" +
                 "  `pt`\n" +
                 "from topic_db\n" +
@@ -120,7 +123,7 @@ public class DwdTradeOrderPreProcess {
                 "  od.order_price,\n" +
                 "  od.sku_num,\n" +
                 "  od.create_time,\n" +
-                "  b.dic_name,\n" +
+                "  b.dic_name source_type,\n" +
                 "  od.source_id,\n" +
                 "  od.split_total_amount,\n" +
                 "  od.split_activity_amount,\n" +
@@ -137,6 +140,8 @@ public class DwdTradeOrderPreProcess {
                 "  act.activity_rule_id,\n" +
                 "  cou.coupon_id,\n" +
                 "  cou.coupon_use_id,\n" +
+                "   oi.`type`,\n" +
+                "   oi.`old`,\n" +
                 "  current_row_timestamp() row_op_ts\n" +
                 "from order_detail od\n" +
                 "join order_info oi\n" +
@@ -147,8 +152,42 @@ public class DwdTradeOrderPreProcess {
                 "on od.id=cou.order_detail_id\n" +
                 "join base_dic FOR SYSTEM_TIME AS OF oi.pt AS b\n" +
                 "on b.dic_code=od.source_type");
+        tableEnv.createTemporaryView("result_table",resultTable);
 
         // TODO 10 写入到kafka新的主题中dwd_trade_order_pre_process
+        tableEnv.executeSql("create table kafka_sink(\n" +
+                "  id string,\n" +
+                "  order_id string,\n" +
+                "  sku_id string,\n" +
+                "  sku_name string,\n" +
+                "  order_price string,\n" +
+                "  sku_num string,\n" +
+                "  create_time string,\n" +
+                "  source_type string,\n" +
+                "  source_id string,\n" +
+                "  split_total_amount string,\n" +
+                "  split_activity_amount string,\n" +
+                "  split_coupon_amount string,\n" +
+                "  split_original_amount string,\n" +
+                "  od_ts bigint,\n" +
+                "  order_status string,\n" +
+                "  user_id string,\n" +
+                "  operate_time string,\n" +
+                "  province_id string,\n" +
+                "  oi_ts bigint,\n" +
+                "  pt TIMESTAMP_LTZ(3),\n" +
+                "  activity_id string,\n" +
+                "  activity_rule_id string,\n" +
+                "  coupon_id string,\n" +
+                "  coupon_use_id string,\n" +
+                "   `type` string,\n" +
+                "   `old` map<string,string>,\n" +
+                "  row_op_ts TIMESTAMP_LTZ(3),\n" +
+                "  PRIMARY KEY (id) NOT ENFORCED\n" +
+                ")" + KafkaUtil.getUpsertKafkaSinkDDL("dwd_trade_order_pre_process"));
+
+        tableEnv.executeSql("insert into kafka_sink select * from result_table");
+
 
     }
 }
